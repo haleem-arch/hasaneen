@@ -106,11 +106,20 @@ export default function ExerciseLibraryPage() {
               transition={{ delay: i * 0.05 }}
               className="glass-card group hover:border-primary/30 transition-all overflow-hidden"
             >
-              <div className="h-40 bg-white/5 flex items-center justify-center relative">
-                <Dumbbell size={40} className="text-gray-700 group-hover:text-primary transition-colors" />
+              <div className="h-48 bg-surface flex items-center justify-center relative group-hover:scale-105 transition-transform duration-500">
+                {ex.image_url ? (
+                  <img 
+                    src={ex.image_url} 
+                    alt={ex.name}
+                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    loading="lazy"
+                  />
+                ) : (
+                  <Dumbbell size={40} className="text-gray-700 group-hover:text-primary transition-colors" />
+                )}
                 {ex.video_url && (
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <PlayCircle size={48} className="text-white" />
+                    <PlayCircle size={48} className="text-white shadow-xl" />
                   </div>
                 )}
               </div>
