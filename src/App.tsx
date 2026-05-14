@@ -6,6 +6,7 @@ import ClientManagementPage from './pages/coach/ClientManagementPage';
 import ExerciseLibraryPage from './pages/coach/ExerciseLibraryPage';
 import TrainingPlanBuilderPage from './pages/coach/TrainingPlanBuilderPage';
 import TodayView from './pages/client/TodayView';
+import AICoachChat from './pages/client/AICoachChat';
 import CoachLayout from './components/layout/CoachLayout';
 
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: 'coach' | 'client' }) => {
@@ -74,6 +75,7 @@ function AppContent() {
       {/* Client Routes */}
       <Route element={<ProtectedRoute requiredRole="client" />}>
         <Route path="/client/today" element={<TodayView />} />
+        <Route path="/client/chat" element={<AICoachChat />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
