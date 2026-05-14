@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
-import CoachDashboard from './pages/coach/DashboardPage';
+import DashboardPage from './pages/coach/DashboardPage';
+import ClientManagementPage from './pages/coach/ClientManagementPage';
+import CoachLayout from './components/layout/CoachLayout';
 
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: 'coach' | 'client' }) => {
   const { user, profile, loading } = useAuth();
@@ -47,7 +49,10 @@ function AppContent() {
 
       {/* Coach Routes */}
       <Route element={<ProtectedRoute requiredRole="coach" />}>
-        <Route path="/coach/dashboard" element={<CoachDashboard />} />
+        <Route element={<CoachLayout />}>
+          <Route path="/coach/dashboard" element={<DashboardPage />} />
+          <Route path="/coach/clients" element={<ClientManagementPage />} />
+        </Route>
       </Route>
 
       {/* Client Routes */}
