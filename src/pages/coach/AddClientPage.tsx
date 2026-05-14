@@ -110,29 +110,41 @@ export default function AddClientPage() {
     try {
       const passcode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      // ── CRITICAL: Save coach session BEFORE creating client ──────────────
+      // ── Get coach session (never changes with Admin API approach) ─────────
       const { data: { session: coachSession } } = await supabase.auth.getSession();
       const coachId = coachSession?.user?.id;
       if (!coachSession || !coachId) throw new Error('Coach session not found. Please sign in again.');
 
-      // ── Create client auth user (this temporarily logs in as client) ──────
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: passcode,
-        options: { data: { display_name: formData.display_name, role: 'client' } }
-      });
-      if (authError) throw authError;
-      const userId = authData.user?.id;
-      if (!userId) throw new Error('Failed to create user account.');
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
-      // ── CRITICAL: Restore coach session immediately ────────────────────────
-      await supabase.auth.setSession({
-        access_token: coachSession.access_token,
-        refresh_token: coachSession.refresh_token
+      // ── Use Admin API — does NOT affect client session at all ─────────────
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SERVICE_KEY,
+          'Authorization': `Bearer ${SERVICE_KEY}`,
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: passcode,
+          email_confirm: true,
+          user_metadata: {
+            display_name: formData.display_name,
+            role: 'client',
+            username: formData.username
+          }
+        })
       });
 
-      // ── Now safe to write coach-owned data ───────────────────────────────
-      await supabase.from('client_profiles').insert({
+      const userData = await res.json();
+      if (!res.ok) throw new Error(userData.message || userData.msg || 'Failed to create user');
+      const userId = userData.id;
+      if (!userId) throw new Error('No user ID returned from Admin API');
+
+      // ── Coach is still logged in — write all data safely ─────────────────
+      const { error: cpError } = await supabase.from('client_profiles').insert({
         user_id: userId,
         coach_id: coachId,
         age: parseInt(formData.age) || null,
@@ -143,6 +155,7 @@ export default function AddClientPage() {
         injuries_notes: formData.injuries_notes,
         generated_passcode: passcode
       });
+      if (cpError) throw cpError;
 
       if (inbodyFile) {
         const inbody: any = await parseInBodyCSV(inbodyFile);
@@ -160,7 +173,7 @@ export default function AddClientPage() {
       }));
       await supabase.from('client_workout_days').insert(days);
 
-      // ── Show passcode modal ───────────────────────────────────────────────
+      // ── Show passcode modal (coach is still logged in!) ───────────────────
       setCreatedClient({ passcode, email: formData.email, name: formData.display_name, userId });
 
     } catch (err: any) {
