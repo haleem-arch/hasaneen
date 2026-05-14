@@ -26,7 +26,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: 'coach' | 'client' })
 };
 
 function AppContent() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -42,11 +42,22 @@ function AppContent() {
       
       {/* Root redirection based on role */}
       <Route path="/" element={
+        !user ? <Navigate to="/login" replace /> :
         profile?.role === 'coach' 
           ? <Navigate to="/coach/dashboard" replace /> 
           : profile?.role === 'client' 
             ? <Navigate to="/client/today" replace /> 
-            : <Navigate to="/login" replace />
+            : (
+              <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+                <p className="text-gray-400 mb-4">Initializing profile...</p>
+                <button 
+                  onClick={() => signOut()}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Sign Out and Try Again
+                </button>
+              </div>
+            )
       } />
 
       {/* Coach Routes */}
