@@ -110,40 +110,31 @@ export default function AddClientPage() {
     try {
       const passcode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      // ── Get coach session (never changes with Admin API approach) ─────────
+      // ── Get coach ID before doing anything ────────────────────────────────
       const { data: { session: coachSession } } = await supabase.auth.getSession();
       const coachId = coachSession?.user?.id;
       if (!coachSession || !coachId) throw new Error('Coach session not found. Please sign in again.');
 
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      const SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      // ── Create a SEPARATE isolated client — persistSession:false means it
+      //    NEVER writes to localStorage and NEVER fires onAuthStateChange on
+      //    the main supabase client. Coach stays logged in the whole time. ──
+      const { createClient } = await import('@supabase/supabase-js');
+      const tempClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      );
 
-      // ── Use Admin API — does NOT affect client session at all ─────────────
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SERVICE_KEY,
-          'Authorization': `Bearer ${SERVICE_KEY}`,
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: passcode,
-          email_confirm: true,
-          user_metadata: {
-            display_name: formData.display_name,
-            role: 'client',
-            username: formData.username
-          }
-        })
+      const { data: authData, error: authError } = await tempClient.auth.signUp({
+        email: formData.email,
+        password: passcode,
+        options: { data: { display_name: formData.display_name, role: 'client', username: formData.username } }
       });
+      if (authError) throw authError;
+      const userId = authData.user?.id;
+      if (!userId) throw new Error('Failed to create user account.');
 
-      const userData = await res.json();
-      if (!res.ok) throw new Error(userData.message || userData.msg || 'Failed to create user');
-      const userId = userData.id;
-      if (!userId) throw new Error('No user ID returned from Admin API');
-
-      // ── Coach is still logged in — write all data safely ─────────────────
+      // ── Coach is STILL the current user on the main client ───────────────
       const { error: cpError } = await supabase.from('client_profiles').insert({
         user_id: userId,
         coach_id: coachId,
@@ -173,7 +164,7 @@ export default function AddClientPage() {
       }));
       await supabase.from('client_workout_days').insert(days);
 
-      // ── Show passcode modal (coach is still logged in!) ───────────────────
+      // ── Show the passcode modal — coach is still logged in ────────────────
       setCreatedClient({ passcode, email: formData.email, name: formData.display_name, userId });
 
     } catch (err: any) {
