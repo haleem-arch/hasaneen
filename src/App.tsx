@@ -22,11 +22,13 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: 'coach' | 'client' })
 };
 
 function AppContent() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={
+        user ? <Navigate to="/" replace /> : <LoginPage />
+      } />
       
       {/* Root redirection based on role */}
       <Route path="/" element={
