@@ -41,9 +41,25 @@ CREATE TABLE client_profiles (
   injuries_notes TEXT,
   preferred_equipment TEXT,
   availability_notes TEXT,
+  workouts_per_week INTEGER DEFAULT 3,
+  generated_passcode VARCHAR(255),
+  experience_level VARCHAR(50) DEFAULT 'beginner',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- New table for client workout days
+CREATE TABLE client_workout_days (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  day_number INTEGER NOT NULL,
+  day_name VARCHAR(100),
+  exercises JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_client_workout_days ON client_workout_days(user_id);
 
 -- ============================================================
 -- EXERCISES & LIBRARY
@@ -424,4 +440,25 @@ CREATE INDEX idx_rehab_injury ON rehab_library(injury_type);
 
 CREATE INDEX idx_exercise_name_search ON exercise_library USING gin(to_tsvector('english', name));
 CREATE INDEX idx_food_name_search ON food_inventory USING gin(to_tsvector('english', name));
-CREATE INDEX idx_rehab_search ON rehab_library USING gin(to_tsvector('english', name));
+-- ============================================================
+-- AUTOMATED PROFILE CREATION TRIGGER
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, display_name, role, username)
+  VALUES (
+    new.id, 
+    new.email, 
+    COALESCE(new.raw_user_meta_data->>'display_name', 'New Athlete'),
+    COALESCE(new.raw_user_meta_data->>'role', 'client'),
+    new.email
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

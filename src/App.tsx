@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/coach/DashboardPage';
 import ClientManagementPage from './pages/coach/ClientManagementPage';
+import AddClientPage from './pages/coach/AddClientPage';
+import ClientDetailsPage from './pages/coach/ClientDetailsPage';
 import ExerciseLibraryPage from './pages/coach/ExerciseLibraryPage';
 import TrainingPlanBuilderPage from './pages/coach/TrainingPlanBuilderPage';
 import TodayView from './pages/client/TodayView';
@@ -68,6 +70,8 @@ function AppContent() {
         <Route element={<CoachLayout />}>
           <Route path="/coach/dashboard" element={<DashboardPage />} />
           <Route path="/coach/clients" element={<ClientManagementPage />} />
+          <Route path="/coach/clients/new" element={<AddClientPage />} />
+          <Route path="/coach/clients/:clientId" element={<ClientDetailsPage />} />
           <Route path="/coach/exercises" element={<ExerciseLibraryPage />} />
           <Route path="/coach/plans" element={<TrainingPlanBuilderPage />} />
         </Route>
