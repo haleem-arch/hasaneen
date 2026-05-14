@@ -4,6 +4,7 @@ import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/coach/DashboardPage';
 import ClientManagementPage from './pages/coach/ClientManagementPage';
 import ExerciseLibraryPage from './pages/coach/ExerciseLibraryPage';
+import TrainingPlanBuilderPage from './pages/coach/TrainingPlanBuilderPage';
 import TodayView from './pages/client/TodayView';
 import CoachLayout from './components/layout/CoachLayout';
 
@@ -66,6 +67,7 @@ function AppContent() {
           <Route path="/coach/dashboard" element={<DashboardPage />} />
           <Route path="/coach/clients" element={<ClientManagementPage />} />
           <Route path="/coach/exercises" element={<ExerciseLibraryPage />} />
+          <Route path="/coach/plans" element={<TrainingPlanBuilderPage />} />
         </Route>
       </Route>
 
