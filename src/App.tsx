@@ -4,6 +4,7 @@ import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/coach/DashboardPage';
 import ClientManagementPage from './pages/coach/ClientManagementPage';
 import ExerciseLibraryPage from './pages/coach/ExerciseLibraryPage';
+import TodayView from './pages/client/TodayView';
 import CoachLayout from './components/layout/CoachLayout';
 
 const ProtectedRoute = ({ requiredRole }: { requiredRole?: 'coach' | 'client' }) => {
@@ -59,7 +60,7 @@ function AppContent() {
 
       {/* Client Routes */}
       <Route element={<ProtectedRoute requiredRole="client" />}>
-        <Route path="/client/today" element={<div>Client Today View</div>} />
+        <Route path="/client/today" element={<TodayView />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
