@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/coach/DashboardPage';
 import ClientManagementPage from './pages/coach/ClientManagementPage';
 import AddClientPage from './pages/coach/AddClientPage';
-import ClientDetailsPage from './pages/coach/ClientDetailsPage';
+import ClientsListPage from './pages/coach/ClientsListPage';
 import ExerciseLibraryPage from './pages/coach/ExerciseLibraryPage';
 import TrainingPlanBuilderPage from './pages/coach/TrainingPlanBuilderPage';
 import TodayView from './pages/client/TodayView';
@@ -22,10 +23,7 @@ const ProtectedRoute = ({ requiredRole }: { requiredRole?: 'coach' | 'client' })
   );
 
   if (!user) return <Navigate to="/login" replace />;
-
-  if (requiredRole && profile?.role !== requiredRole) {
-    return <Navigate to="/" replace />;
-  }
+  if (requiredRole && profile?.role !== requiredRole) return <Navigate to="/" replace />;
 
   return <Outlet />;
 };
@@ -41,37 +39,29 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/login" element={
-        user ? <Navigate to="/" replace /> : <LoginPage />
-      } />
-      
-      {/* Root redirection based on role */}
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+
+      {/* Root redirect based on role */}
       <Route path="/" element={
         !user ? <Navigate to="/login" replace /> :
-        profile?.role === 'coach' 
-          ? <Navigate to="/coach/dashboard" replace /> 
-          : profile?.role === 'client' 
-            ? <Navigate to="/client/today" replace /> 
-            : (
-              <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
-                <p className="text-gray-400 mb-4">Initializing profile...</p>
-                <button 
-                  onClick={() => signOut()}
-                  className="text-sm text-primary hover:underline"
-                >
-                  Sign Out and Try Again
-                </button>
-              </div>
-            )
+        profile?.role === 'coach' ? <Navigate to="/coach/dashboard" replace /> :
+        profile?.role === 'client' ? <Navigate to="/client/today" replace /> : (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+            <p className="text-gray-400 mb-4">Initializing profile...</p>
+            <button onClick={() => signOut()} className="text-sm text-primary hover:underline">
+              Sign Out and Try Again
+            </button>
+          </div>
+        )
       } />
 
       {/* Coach Routes */}
       <Route element={<ProtectedRoute requiredRole="coach" />}>
         <Route element={<CoachLayout />}>
           <Route path="/coach/dashboard" element={<DashboardPage />} />
-          <Route path="/coach/clients" element={<ClientManagementPage />} />
+          <Route path="/coach/clients" element={<ClientsListPage />} />
           <Route path="/coach/clients/new" element={<AddClientPage />} />
-          <Route path="/coach/clients/:clientId" element={<ClientDetailsPage />} />
+          <Route path="/coach/clients/:clientId" element={<ClientManagementPage />} />
           <Route path="/coach/exercises" element={<ExerciseLibraryPage />} />
           <Route path="/coach/plans" element={<TrainingPlanBuilderPage />} />
         </Route>
@@ -92,6 +82,12 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: { background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.08)' }
+        }}
+      />
       <Router>
         <div className="min-h-screen bg-background text-white">
           <AppContent />

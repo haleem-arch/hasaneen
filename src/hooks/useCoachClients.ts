@@ -8,13 +8,8 @@ export const useCoachClients = () => {
   useEffect(() => {
     const fetchClients = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) return;
 
-      // We fetch from client_profiles to get the specific athlete data,
-      // and join with profiles to get the auth-related details.
       const { data, error } = await supabase
         .from('client_profiles')
         .select(`
@@ -33,8 +28,6 @@ export const useCoachClients = () => {
     };
 
     fetchClients();
-    
-    // Optional: Add real-time subscription here if needed later
   }, []);
 
   return { clients, loading };
