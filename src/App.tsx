@@ -79,6 +79,19 @@ function AppContent() {
   );
 }
 
+function FloatingLogout() {
+  const { user, signOut } = useAuth();
+  if (!user) return null;
+  return (
+    <button
+      onClick={() => signOut()}
+      className="fixed bottom-6 right-6 z-[9999] bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-2xl flex items-center gap-2 transition-all"
+    >
+      <span>⏏</span> Logout
+    </button>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -91,6 +104,7 @@ function App() {
       <Router>
         <div className="min-h-screen bg-background text-white">
           <AppContent />
+          <FloatingLogout />
         </div>
       </Router>
     </AuthProvider>
