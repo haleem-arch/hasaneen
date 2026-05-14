@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Users, ClipboardList, Activity, Settings } from 'lucide-react';
 
